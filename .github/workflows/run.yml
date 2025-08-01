@@ -1,0 +1,26 @@
+name: Run EuropaBots on Windows
+
+on:
+  workflow_dispatch:  # Manually triggered
+
+jobs:
+  run-europabots:
+    runs-on: windows-latest
+
+    steps:
+      - name: Download ZIP from Google Drive
+        run: |
+          Invoke-WebRequest -Uri "https://drive.usercontent.google.com/download?id=1Tm5V1ABjsWiFjHolMgPPFdCBKRR78-iz&export=download&authuser=0" -OutFile "europabots.zip"
+
+      - name: Extract ZIP
+        run: |
+          Expand-Archive europabots.zip -DestinationPath .
+
+      - name: Show extracted files
+        run: |
+          Get-ChildItem -Recurse
+
+      - name: Run the batch file inside EuropaBots
+        working-directory: ./EuropaBots
+        run: |
+          .\RunAllRakClients.bat
