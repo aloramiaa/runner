@@ -17,17 +17,19 @@ jobs:
           Expand-Archive europabots.zip -DestinationPath .
 
       - name: Replace broken batch file with fixed version
+        shell: pwsh
         run: |
-          Set-Content -Path ".\EuropaBots\RunAllRakClients.bat" -Value '@echo off
+          $batContent = @"
+@echo off
 setlocal enabledelayedexpansion
 
 echo Starting RakSAMP Lite for each folder...
 
 for /d %%F in (*) do (
-    if exist "%%F\RakSAMP Lite.exe" (
+    if exist ""%%F\RakSAMP Lite.exe"" (
         echo Running: %%F\RakSAMP Lite.exe
-        pushd "%%F"
-        start "" "RakSAMP Lite.exe"
+        pushd ""%%F""
+        start """" ""RakSAMP Lite.exe""
         popd
         timeout /t 2 /nobreak >nul
     ) else (
@@ -36,7 +38,9 @@ for /d %%F in (*) do (
 )
 
 echo Done launching all available RakSAMP Lite instances.
-pause' -Encoding ASCII
+pause
+"@
+          Set-Content -Path ".\EuropaBots\RunAllRakClients.bat" -Value $batContent -Encoding ASCII
 
       - name: Run the batch file inside EuropaBots
         working-directory: ./EuropaBots
