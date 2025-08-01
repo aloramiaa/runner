@@ -1,10 +1,10 @@
-name: Run EuropaBots on Windows
+name: Run RakSAMP Lite Clients
 
 on:
   workflow_dispatch:
 
 jobs:
-  run-europabots:
+  run-lite-clients:
     runs-on: windows-latest
 
     steps:
@@ -16,31 +16,17 @@ jobs:
         run: |
           Expand-Archive europabots.zip -DestinationPath .
 
-      - name: Replace broken batch file with fixed version
-        shell: cmd
-        run: |
-          echo @echo off > EuropaBots\RunAllRakClients.bat
-          echo setlocal enabledelayedexpansion >> EuropaBots\RunAllRakClients.bat
-          echo. >> EuropaBots\RunAllRakClients.bat
-          echo echo Starting RakSAMP Lite for each folder... >> EuropaBots\RunAllRakClients.bat
-          echo. >> EuropaBots\RunAllRakClients.bat
-          echo for /d %%%%F in (*) do ( >> EuropaBots\RunAllRakClients.bat
-          echo     if exist "%%%%F\RakSAMP Lite.exe" ( >> EuropaBots\RunAllRakClients.bat
-          echo         echo Running: %%%%F\RakSAMP Lite.exe >> EuropaBots\RunAllRakClients.bat
-          echo         pushd "%%%%F" >> EuropaBots\RunAllRakClients.bat
-          echo         start "" "RakSAMP Lite.exe" >> EuropaBots\RunAllRakClients.bat
-          echo         popd >> EuropaBots\RunAllRakClients.bat
-          echo         timeout /t 2 /nobreak ^>nul >> EuropaBots\RunAllRakClients.bat
-          echo     ) else ( >> EuropaBots\RunAllRakClients.bat
-          echo         echo Skipping: %%%%F (RakSAMP Lite.exe not found) >> EuropaBots\RunAllRakClients.bat
-          echo     ) >> EuropaBots\RunAllRakClients.bat
-          echo ) >> EuropaBots\RunAllRakClients.bat
-          echo. >> EuropaBots\RunAllRakClients.bat
-          echo echo Done launching all available RakSAMP Lite instances. >> EuropaBots\RunAllRakClients.bat
-          echo pause >> EuropaBots\RunAllRakClients.bat
-
-      - name: Run the batch file inside EuropaBots
+      - name: Launch all RakSAMP Lite.exe clients manually
+        shell: pwsh
         working-directory: ./EuropaBots
-        shell: cmd
         run: |
-          RunAllRakClients.bat
+          Get-ChildItem -Directory | ForEach-Object {
+            $exePath = Join-Path $_.FullName "RakSAMP Lite.exe"
+            if (Test-Path $exePath) {
+              Write-Host "Launching: $exePath"
+              Start-Process -FilePath "$exePath"
+              Start-Sleep -Seconds 2
+            } else {
+              Write-Host "Skipping: $($_.Name) (no RakSAMP Lite.exe)"
+            }
+          }
