@@ -17,6 +17,7 @@ jobs:
           Expand-Archive europabots.zip -DestinationPath .
 
       - name: Replace broken batch file with fixed version
+        shell: cmd
         run: |
           echo @echo off > EuropaBots\RunAllRakClients.bat
           echo setlocal enabledelayedexpansion >> EuropaBots\RunAllRakClients.bat
@@ -24,15 +25,15 @@ jobs:
           echo echo Starting RakSAMP Lite for each folder... >> EuropaBots\RunAllRakClients.bat
           echo. >> EuropaBots\RunAllRakClients.bat
           echo for /d %%%%F in (*) do ( >> EuropaBots\RunAllRakClients.bat
-          echo ^    if exist "%%%%F\RakSAMP Lite.exe" ( >> EuropaBots\RunAllRakClients.bat
-          echo ^        echo Running: %%%%F\RakSAMP Lite.exe >> EuropaBots\RunAllRakClients.bat
-          echo ^        pushd "%%%%F" >> EuropaBots\RunAllRakClients.bat
-          echo ^        start "" "RakSAMP Lite.exe" >> EuropaBots\RunAllRakClients.bat
-          echo ^        popd >> EuropaBots\RunAllRakClients.bat
-          echo ^        timeout /t 2 /nobreak ^>nul >> EuropaBots\RunAllRakClients.bat
-          echo ^    ) else ( >> EuropaBots\RunAllRakClients.bat
-          echo ^        echo Skipping: %%%%F (RakSAMP Lite.exe not found) >> EuropaBots\RunAllRakClients.bat
-          echo ^    ) >> EuropaBots\RunAllRakClients.bat
+          echo     if exist "%%%%F\RakSAMP Lite.exe" ( >> EuropaBots\RunAllRakClients.bat
+          echo         echo Running: %%%%F\RakSAMP Lite.exe >> EuropaBots\RunAllRakClients.bat
+          echo         pushd "%%%%F" >> EuropaBots\RunAllRakClients.bat
+          echo         start "" "RakSAMP Lite.exe" >> EuropaBots\RunAllRakClients.bat
+          echo         popd >> EuropaBots\RunAllRakClients.bat
+          echo         timeout /t 2 /nobreak ^>nul >> EuropaBots\RunAllRakClients.bat
+          echo     ) else ( >> EuropaBots\RunAllRakClients.bat
+          echo         echo Skipping: %%%%F (RakSAMP Lite.exe not found) >> EuropaBots\RunAllRakClients.bat
+          echo     ) >> EuropaBots\RunAllRakClients.bat
           echo ) >> EuropaBots\RunAllRakClients.bat
           echo. >> EuropaBots\RunAllRakClients.bat
           echo echo Done launching all available RakSAMP Lite instances. >> EuropaBots\RunAllRakClients.bat
@@ -40,5 +41,6 @@ jobs:
 
       - name: Run the batch file inside EuropaBots
         working-directory: ./EuropaBots
+        shell: cmd
         run: |
-          .\RunAllRakClients.bat
+          RunAllRakClients.bat
