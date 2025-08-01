@@ -1,7 +1,7 @@
 name: Run EuropaBots on Windows
 
 on:
-  workflow_dispatch:  # Manually triggered
+  workflow_dispatch:
 
 jobs:
   run-europabots:
@@ -16,9 +16,27 @@ jobs:
         run: |
           Expand-Archive europabots.zip -DestinationPath .
 
-      - name: Show extracted files
+      - name: Replace broken batch file with fixed version
         run: |
-          Get-ChildItem -Recurse
+          Set-Content -Path ".\EuropaBots\RunAllRakClients.bat" -Value '@echo off
+setlocal enabledelayedexpansion
+
+echo Starting RakSAMP Lite for each folder...
+
+for /d %%F in (*) do (
+    if exist "%%F\RakSAMP Lite.exe" (
+        echo Running: %%F\RakSAMP Lite.exe
+        pushd "%%F"
+        start "" "RakSAMP Lite.exe"
+        popd
+        timeout /t 2 /nobreak >nul
+    ) else (
+        echo Skipping: %%F (RakSAMP Lite.exe not found)
+    )
+)
+
+echo Done launching all available RakSAMP Lite instances.
+pause' -Encoding ASCII
 
       - name: Run the batch file inside EuropaBots
         working-directory: ./EuropaBots
