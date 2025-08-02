@@ -8,25 +8,45 @@ jobs:
     runs-on: windows-latest
 
     steps:
-      - name: Download ZIP from Google Drive
-        run: |
-          Invoke-WebRequest -Uri "https://drive.usercontent.google.com/download?id=1Tm5V1ABjsWiFjHolMgPPFdCBKRR78-iz&export=download&authuser=0" -OutFile "europabots.zip"
+      - name: Download ZIP from Google Drive using gdown
+        uses: hwoy/gdown-action@v1
+        with:
+          file_id: 1Tm5V1ABjsWiFjHolMgPPFdCBKRR78-iz
+          filename: europabots.zip
 
       - name: Extract ZIP
         run: |
           Expand-Archive europabots.zip -DestinationPath .
 
-      - name: Launch all RakSAMP Lite.exe clients manually
+      - name: Launch RakSAMP Lite clients and monitor
         shell: pwsh
         working-directory: ./EuropaBots
         run: |
-          Get-ChildItem -Directory | ForEach-Object {
-            $exePath = Join-Path $_.FullName "RakSAMP Lite.exe"
-            if (Test-Path $exePath) {
-              Write-Host "Launching: $exePath"
-              Start-Process -FilePath "$exePath"
-              Start-Sleep -Seconds 2
+          $procs = @()
+          $folders = Get-ChildItem -Directory
+
+          foreach ($folder in $folders) {
+            $exe = Join-Path $folder.FullName "RakSAMP Lite.exe"
+            if (Test-Path $exe) {
+              Write-Host "Launching: $exe"
+              $proc = Start-Process -FilePath $exe -PassThru
+              $procs += $proc
+              Start-Sleep -Seconds 5
             } else {
-              Write-Host "Skipping: $($_.Name) (no RakSAMP Lite.exe)"
+              Write-Host "Skipping: $($folder.Name) (no RakSAMP Lite.exe)"
             }
+          }
+
+          Write-Host "All clients launched. Monitoring processes..."
+
+          # Infinite loop to keep the job alive and monitor processes
+          while ($true) {
+            foreach ($p in $procs) {
+              if ($p.HasExited) {
+                Write-Host "Process $($p.Id) has exited."
+              } else {
+                Write-Host "Process $($p.Id) is running."
+              }
+            }
+            Start-Sleep -Seconds 60
           }
