@@ -8,13 +8,14 @@ jobs:
     runs-on: windows-latest
 
     steps:
-      - name: Download ZIP from Google Drive using gdown
-        uses: hwoy/gdown-action@v1
-        with:
-          file_id: 1Tm5V1ABjsWiFjHolMgPPFdCBKRR78-iz
-          filename: europabots.zip
+      - name: Download ZIP from Google Drive (fallback curl)
+        shell: bash
+        run: |
+          FILE_ID=1Tm5V1ABjsWiFjHolMgPPFdCBKRR78-iz
+          curl -L -o europabots.zip "https://drive.google.com/uc?export=download&id=${FILE_ID}"
 
       - name: Extract ZIP
+        shell: pwsh
         run: |
           Expand-Archive europabots.zip -DestinationPath .
 
@@ -39,13 +40,12 @@ jobs:
 
           Write-Host "All clients launched. Monitoring processes..."
 
-          # Infinite loop to keep the job alive and monitor processes
           while ($true) {
             foreach ($p in $procs) {
               if ($p.HasExited) {
-                Write-Host "Process $($p.Id) has exited."
+                Write-Host "❌ Process $($p.Id) has exited."
               } else {
-                Write-Host "Process $($p.Id) is running."
+                Write-Host "✅ Process $($p.Id) is running."
               }
             }
             Start-Sleep -Seconds 60
